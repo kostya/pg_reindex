@@ -1,0 +1,209 @@
+#!/usr/bin/env ruby
+
+require 'rubygems'
+require 'thor'
+require 'yaml'
+require File.dirname(__FILE__) + '/../lib/pg-reindex'
+
+class PgReindexer < Thor
+
+  desc "dbs", "Show list of databases from database.yml (-n if no show sizes)"
+  method_option :no_size, :aliases => '-n', :type => :boolean
+  def dbs    
+    list = db_list(!options[:no_size])
+    return unless list
+    
+    render_db_list(list)
+  end
+
+  desc "tables ENV", "Show tables of database"
+  method_option :size, :aliases => '-s', :type => :string
+  def tables(env)
+    conn = get_connection(env)
+    relations = conn.get_struct_relations(options[:size])
+    render_tables(env, relations)
+  end
+  
+  desc "rebuild ENV (table|index)[,(table|index)]", "rebuild tables,indexes,pkeys"
+  method_option :write, :aliases => '--write', :type => :boolean
+  method_option :no_ask, :aliases => '--no-ask', :type => :boolean
+  def rebuild(env, to_reindex = '')
+    if !to_reindex || to_reindex.empty?
+      say "blank attributes to rebuild", :red
+      exit 1
+    end
+
+    conn = get_connection(env)
+    
+    rebuild = conn.filter_relations(to_reindex)
+   
+    rebuild.each do |row|
+      do_rebuild conn, row, options[:write], !options[:no_ask]
+    end
+    
+    if rebuild.empty?
+      say "nothing to rebuild", :red
+    end
+  end
+  
+  desc "install ENV", "Install need function to database, like function: swap_for_pkey"
+  def install(env)
+    conn = get_connection(env)
+    conn.install_swap_for_pkey
+    say "DONE!", :green
+  end
+  
+  desc "queries ENV", "Show current queries on database ENV"
+  def queries(env)
+    conn = get_connection(env)
+    q = conn.queries
+    r = q.map do |query|
+      [query['procpid'], query['age'], query['current_query']]
+    end
+    
+    print_table r
+  end
+  
+  desc "cancel ENV PID", "Cancel pid query"
+  def cancel(env, pid)
+    conn = get_connection(env)
+    conn.cancel(pid)
+  end
+  
+private
+
+  def get_connection(env)
+    conn = connection(env)
+    unless conn
+      say "Not connected to #{env}, hm!!!", :red
+      exit 1
+    end
+    
+    conn
+  end
+
+  def connection(env)
+    cn = connect(env, db_config[env])
+  end
+
+  def connect(env, conf)
+    @connects ||= {}
+    @connects[env] ||= PgReindex.new(conf) if conf
+  end
+  
+  # load database.yml
+  def db_config
+    @db_config ||= begin
+      file = ENV['PGRE_CFG'] || `pwd`.to_s.chop + "/config/database.yml"
+      if File.exists?(file)
+        YAML.load_file(file)
+      else
+        say "Specify path to database.yml with env CFG, like: CFG=/../../database.yml", :red
+        exit 1
+      end
+    end
+  end   
+  
+  def db_list(show_sizes = true)
+    cfg = db_config
+    return unless cfg
+            
+    cfg = cfg.sort_by{|a| a[0]}
+    cfg.map do |env, config|
+      x = [env, config]
+      x << (connection(env).database_size(config['database']) rescue '-') if show_sizes
+      x
+    end
+  end
+                                            
+  def do_rebuild(conn, row, write = true, ask = true)
+    #ask = false unless write
+    
+    say "=> rebuild #{row['index']} (#{row['i_size_p']}), write #{write}, ask #{ask}", :yellow
+    
+    sqls = conn.index_sqls(row)
+    
+    if ask || !write
+      sqls.each do |sql|
+        say "  #{sql}"
+      end
+    end
+    
+    if ask
+      r = ask_until("Rebuild? (y/n)")
+      if r == '' || r == 'y' || r == 'Y'
+      else
+        say "  ... skipped\n", :red
+        return      
+      end
+    end
+    
+    if row['index'].end_with?("_pkey")
+      unless conn.check_swap_for_pkey
+        say "  ... You should install function swap_for_pkey for rebuild pkey, call: #{$0} install ENV", :red
+        return
+      end
+    end
+    
+    started_at = Time.now
+    
+    if write
+      sqls.each do |query|
+        say "  => ", :bold, false
+        say "#{query}", nil, false
+        tm = Time.now
+      
+        conn.exec(query)
+      
+        say " (#{"%.3f" % (Time.now - tm)}s)"
+      end
+      
+      new_size = conn.get_index_size(row['index'])['i_size_p'] rescue '-'
+      say "<= rebuilded #{row['index']} (#{new_size})", :yellow
+      say "  DONE! (#{"%.3f" % (Time.now - started_at)}s)\n", :green
+    else
+      say "  DRY-RUN DONE\n", :green
+    end
+  end
+  
+  def render_db_list(db_list)
+    say "Databases list:", :green
+    db_list.each do |row|
+      say "\t#{row[0].ljust(30)} ", :yellow, false
+      say "#{row[1]['database']}:#{row[1]['host']}".ljust(60)
+      say "#{row[2]}"
+    end
+  end
+  
+  def render_tables(env, relations)
+    off1 = 65
+    off2 = 15
+    off3 = 15
+
+    say "tables for #{env.ljust(off1 - 9)}size#{''.ljust(off2 - 4)}indexes_size", :green
+    
+    relations.each do |table, indexes|
+      say "  #{table.ljust(off1)}", :yellow, false
+      f = indexes[0]
+      say "#{f['size_p'].ljust(off2)}", :yellow, false
+      say "#{f['total_i_size_p'].ljust(off3)}", :yellow, true
+      #say "#{f['total_size_p']}", :yellow
+
+        
+      indexes.each do |rel|
+        say "    #{(rel['index']+" ").ljust(off1 - 2 + off2, '.')}", nil, false
+        say "#{rel['i_size_p']}"
+      end
+    end
+  end
+  
+  def ask_until(str, answers = ['y', 'n', ''])
+    loop do
+      res = ask(str)
+      return res if answers.include?(res)
+    end    
+  end
+  
+end
+
+PgReindexer.start
