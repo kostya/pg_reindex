@@ -156,7 +156,7 @@ $$language plpgsql;
   end
     
   def index_sql(oid, name, new_name)
-    str = index_def(oid).gsub(name, new_name)
+    str = index_def(oid).sub(name, new_name)
     
     pos = str.index(new_name)
             
