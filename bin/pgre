@@ -98,7 +98,7 @@ private
       if File.exists?(file)
         YAML.load_file(file)
       else
-        say "Specify path to database.yml with env CFG, like: CFG=/../../database.yml", :red
+        say "Specify path to database.yml with env PGRE_CFG, like: PGRE_CFG=/../../database.yml pgre ...", :red
         exit 1
       end
     end
