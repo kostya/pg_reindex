@@ -77,6 +77,12 @@ describe PgReindex do
     end
   end
   
+  it "index_sql with save name" do
+    @pgre.stub!(:index_def).and_return("CREATE INDEX locked_by ON delayed_jobs USING btree (locked_by)")
+    sql = @pgre.index_sql(0, "locked_by", "locked_by_2")
+    sql.should == "CREATE INDEX CONCURRENTLY locked_by_2 ON delayed_jobs USING btree (locked_by)"
+  end
+  
   it "index def" do
     r = row('a_b_c')
     @pgre.index_def(r['index_oid']).should == "CREATE UNIQUE INDEX a_b_c ON tests USING btree (a, b, c) WHERE ((a > 0) AND (b < 0))"

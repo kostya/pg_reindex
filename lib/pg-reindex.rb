@@ -141,13 +141,13 @@ $$language plpgsql;
     
     if name.end_with?('_pkey')
       [
-        index_sql(table, oid, name, new_name),
+        index_sql(oid, name, new_name),
         "ANALYZE #{table}",
         "SELECT swap_for_pkey('public', '#{name}', '#{new_name}')"
       ]
     else
       [
-        index_sql(table, oid, name, new_name),
+        index_sql(oid, name, new_name),
         "ANALYZE #{table}",
         "DROP INDEX #{name}",
         "ALTER INDEX #{new_name} RENAME TO #{name}"
@@ -155,7 +155,7 @@ $$language plpgsql;
     end
   end
     
-  def index_sql(table, oid, name, new_name)
+  def index_sql(oid, name, new_name)
     str = index_def(oid).gsub(name, new_name)
     
     pos = str.index(new_name)
