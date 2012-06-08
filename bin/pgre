@@ -140,7 +140,7 @@ private
     
     if row['index'].end_with?("_pkey")
       unless conn.check_swap_for_pkey
-        say "  ... You should install function swap_for_pkey for rebuild pkey, call: #{$0} install ENV", :red
+        say "  ... You should install function swap_for_pkey for rebuild pkey, call: #{$0} install ENV\n", :red
         return
       end
     end
@@ -188,7 +188,6 @@ private
       say "#{f['size_p'].ljust(off2)}", :yellow, false
       say "#{f['total_i_size_p'].ljust(off3)}", :yellow, true
       #say "#{f['total_size_p']}", :yellow
-
         
       indexes.each do |rel|
         say "    #{(rel['index']+" ").ljust(off1 - 2 + off2, '.')}", nil, false
