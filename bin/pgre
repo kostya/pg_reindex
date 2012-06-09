@@ -119,7 +119,7 @@ private
   def do_rebuild(conn, row, write = true, ask = true)
     #ask = false unless write
     
-    say "=> rebuild #{row['index']} (#{row['i_size_p']}), write #{write}, ask #{ask}", :yellow
+    say "=> #{row['index']} (#{row['i_size_p']}), write #{write}, ask #{ask}", :yellow
     
     sqls = conn.index_sqls(row)
     
@@ -140,7 +140,7 @@ private
     
     if row['index'].end_with?("_pkey")
       unless conn.check_swap_for_pkey
-        say "  ... You should install function swap_for_pkey for rebuild pkey, call: #{$0} install ENV\n", :red
+        say "  ... install function swap_for_pkey for rebuild pkey, call: #{$0} install ENV\n", :red
         return
       end
     end
@@ -159,7 +159,7 @@ private
       end
       
       new_size = conn.get_index_size(row['index'])['i_size_p'] rescue '-'
-      say "<= rebuilded #{row['index']} (#{new_size})", :yellow
+      say "<= #{row['index']} (#{new_size})", :yellow
       say "  DONE! (#{"%.3f" % (Time.now - started_at)}s)\n", :green
     else
       say "  DRY-RUN DONE\n", :green
