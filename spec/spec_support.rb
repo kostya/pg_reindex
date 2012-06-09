@@ -1,4 +1,4 @@
-$cfg = {'adapter' => 'postgresql', 'database' => 'pgre_test', 'encoding' => 'utf8', 'username' => 'kostya', 'password' => 'password'}
+$cfg = {'adapter' => 'postgresql', 'database' => 'pgre_test'}
 ActiveRecord::Base.establish_connection $cfg
 
 class Test < ActiveRecord::Base
