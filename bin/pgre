@@ -111,7 +111,7 @@ private
     cfg = cfg.sort_by{|a| a[0]}
     cfg.map do |env, config|
       x = [env, config]
-      x << (connection(env).database_size(config['database']) rescue '-') if show_sizes
+      x << (connection(env).database_size(config['database']) rescue 'not connected') if show_sizes
       x
     end
   end
