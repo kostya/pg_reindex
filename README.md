@@ -46,8 +46,9 @@ Rebuild index produces sqls:
     3. DROP INDEX bla;
     4. ALTER INDEX bla2 RENAME TO bla; 
     
-2 can be blocked by long running query(LRQ), or autovacuum (in this case just kill autovacuum or wait LRQ).
-By careful, if between 2 and (3,4) started LRQ or autovacuum, (3,4) can blocks all queries on this table. If this happens, and (3,4) not quit after < 30s, should stop (3,4) by cancel query in PostgreSQL. And execute (3,4) manually.
+1 can be blocked by long running query(LRQ), or autovacuum (in this case kill autovacuum or wait LRQ).
+By careful, if between 1 and (3,4) started LRQ or autovacuum, in this case (3,4) blocks all queries on this table. 
+If this happens, and (3,4) not quit after < 30s, should stop (3,4) by cancel query in PostgreSQL, and execute manually.
   
   
 Rebuild pkey produces sqls:
@@ -56,7 +57,7 @@ Rebuild pkey produces sqls:
     2. ANALYZE some_table;
     3. SELECT swap_for_pkey('public', 'some_table_pkey', 'some_table_pkey2');
 
-  Same issue with 2 and 3.
+  Same issue with 1 and 3.
 
 
 MIT-LICENCE
