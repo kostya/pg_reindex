@@ -51,7 +51,8 @@ class PgReindex
         pg_size_pretty(pg_total_relation_size(C.oid)) AS "total_size_p",
         pg_size_pretty(pg_total_relation_size(C.oid) - pg_relation_size(C.oid)) AS "total_i_size_p",
         pg_relation_size(i.oid) as "i_size",
-        pg_size_pretty(pg_relation_size(i.oid)) as "i_size_p"
+        pg_size_pretty(pg_relation_size(i.oid)) as "i_size_p",
+        ix.indisprimary as "primary"
       FROM pg_class C, pg_class i, pg_index ix, pg_namespace N
       WHERE nspname IN ('public') AND
               C.oid = ix.indrelid and i.oid = ix.indexrelid
@@ -129,17 +130,17 @@ $$language plpgsql;
   end
 
   def index_sqls(index_row)
-    index_sql_array(index_row['table'], index_row['index_oid'], index_row['index'])
+    index_sql_array(index_row['table'], index_row['index_oid'], index_row['index'], index_row['primary'] == 't')
   end
     
-  def index_sql_array(table, oid, name)
+  def index_sql_array(table, oid, name, primary = false)
     new_name = if name.size < 61  
       name + "_2"
     else
       name[0..-3] + "_2"
     end
     
-    if name.end_with?('_pkey')
+    if primary
       [
         index_sql(oid, name, new_name),
         "ANALYZE #{table}",

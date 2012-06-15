@@ -138,7 +138,7 @@ private
       end
     end
     
-    if row['index'].end_with?("_pkey")
+    if row['primary'] == 't'
       unless conn.have_rebuild_for_relation?('pg_catalog.pg_class')
         say "  ... no permission for rebuild pkey, should be superuser\n", :red
         return
