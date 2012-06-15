@@ -16,7 +16,7 @@ class PgReindexer < Thor
     render_db_list(list)
   end
 
-  desc "tables ENV", "Show tables of database"
+  desc "tables ENV", "Show tables/indexes for database"
   method_option :size, :aliases => '-s', :type => :string
   def tables(env)
     conn = get_connection(env)
@@ -46,7 +46,7 @@ class PgReindexer < Thor
     end
   end
   
-  desc "install ENV", "Install need function to database, like function: swap_for_pkey"
+  desc "install ENV", "Install function swap_for_pkey to database"
   def install(env)
     conn = get_connection(env)
     conn.install_swap_for_pkey

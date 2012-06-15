@@ -22,12 +22,15 @@ Tasks:
     pgre tables ENV                                 # Show tables of database
 
 Examples:
+  
+    # Show databases
+    pgre dbs
 
     # Show tables with indexes, which full size more than 1Gb
     pgre tables production -s 1000
 
     # Show process without really rebuild
-    pgre rebuild production users,some_index1,some_index2
+    pgre rebuild production users,some_index1
   
     # Rebuild indexes 
     pgre rebuild production users --write
@@ -47,8 +50,8 @@ Rebuild index produces sqls:
     4. ALTER INDEX bla2 RENAME TO bla; 
     
 1 can be blocked by long running query(LRQ), or autovacuum (in this case kill autovacuum or wait LRQ).
-By careful, if between 1 and (3,4) started LRQ or autovacuum, in this case (3,4) blocks all queries on this table. 
-If this happens, and (3,4) not quit after < 30s, should stop (3,4) by cancel query in PostgreSQL, and execute manually.
+By careful, if between 1 and (3,4) started LRQ or autovacuum, in this case (3,4) will block all queries on this table. 
+If it happens, and (3,4) not quit after < 30s, you should stop (3,4) by cancel query in PostgreSQL, and later execute manually.
   
   
 Rebuild pkey produces sqls:
