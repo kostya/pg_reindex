@@ -9,7 +9,7 @@ Install:
   
 Using:
 
-    export PGRE_CFG=/some/path/database.yml 
+    export PGRE_CFG=/some/path/database.yml # (database.yml from rails application)
     pgre --help
 
 User in connection should be an owner of relations. And for rebuild pkey, should be superuser.
