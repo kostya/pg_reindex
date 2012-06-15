@@ -5,10 +5,10 @@ class PgReindex
   MIN_SIZE = 50 # megabyte min, total table size
 
   def initialize(conf)
-    cfg = {:host => conf['host'] || '127.0.0.1', :dbname => conf['database'],
+    @cfg = {:host => conf['host'] || '127.0.0.1', :dbname => conf['database'],
            :user => conf['username'] || `whoami`.chop, :password => conf['password'] || 'password', :port => conf['port'].to_s}
 
-    @conn = PGconn.new cfg
+    @conn = PGconn.new @cfg
   end
   
   def get_struct_relations(min_size = nil)
@@ -187,7 +187,14 @@ $$language plpgsql;
   end
   
   def cancel(procpid)
-    @conn.exec "select pg_cancel_backend(#{procpid.to_i})"
+    @conn.exec("select pg_cancel_backend(#{procpid.to_i})")
   end
-
+  
+  def have_rebuild_for_relation?(relation)
+    res = @conn.exec "select has_table_privilege(E'#{@cfg[:user]}', E'#{relation}', 'update,references')"
+    res[0]['has_table_privilege'] == 't' ? true : false
+  rescue
+    false
+  end
+  
 end

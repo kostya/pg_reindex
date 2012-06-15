@@ -122,20 +122,28 @@ describe PgReindex do
     def1 = @pgre.index_def(r['index_oid'])
         
     sqls = @pgre.index_sqls(r)
-    sqls.each do |sql|
-      @pgre.exec sql
-    end
+    if @pgre.have_rebuild_for_relation?('pg_catalog.pg_class')
+      sqls.each do |sql|
+        @pgre.exec sql
+      end      
                           
-    r2 = row('tests_pkey')
-    r2['index_oid'].to_i.should > 0
+      r2 = row('tests_pkey')
+      r2['index_oid'].to_i.should > 0
 
-    r2['index_oid'].should == r['index_oid']
-    def1.should == @pgre.index_def(r2['index_oid'])
+      r2['index_oid'].should == r['index_oid']
+      def1.should == @pgre.index_def(r2['index_oid'])
                                       
-    # index should be
-    res = @pgre.filter_relations('tests')
-    res.size.should == 4
-    res.map{|el| el['index']}.sort.should == ["a_b_c", "index_tests_on_a", "index_tests_on_b_and_c", "tests_pkey"]
+      # index should be
+      res = @pgre.filter_relations('tests')
+      res.size.should == 4
+      res.map{|el| el['index']}.sort.should == ["a_b_c", "index_tests_on_a", "index_tests_on_b_and_c", "tests_pkey"]
+    else
+      puts "you havn't permission to rebuild pkey, test impossible!"
+    end
+  end
+  
+  it "have_rebuild_for_relation? should be true for created table" do
+    @pgre.have_rebuild_for_relation?('tests').should == true
   end
 
 end

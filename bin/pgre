@@ -139,11 +139,21 @@ private
     end
     
     if row['index'].end_with?("_pkey")
+      unless conn.have_rebuild_for_relation?('pg_catalog.pg_class')
+        say "  ... no permission for rebuild pkey, should be superuser\n", :red
+        return
+      end
+      
       unless conn.check_swap_for_pkey
         say "  ... install function swap_for_pkey for rebuild pkey, call: #{$0} install ENV\n", :red
         return
       end
     end
+    
+    unless conn.have_rebuild_for_relation?(row['table'])
+      say "  ... no permission for rebuild #{row['table']}, should be an owner or superuser\n", :red
+      return
+    end                               
     
     started_at = Time.now
     
