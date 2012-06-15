@@ -21,7 +21,7 @@ Tasks:
     pgre rebuild ENV (table|index)[,(table|index)]  # rebuild tables,indexes,pkeys
     pgre tables ENV                                 # Show tables of database
 
-Examples:
+Use case:
   
     # Show databases
     pgre dbs
