@@ -50,7 +50,7 @@ Rebuild index produces sqls:
     4. ALTER INDEX bla2 RENAME TO bla; 
     
 1 can be blocked by long running query(LRQ), or autovacuum (in this case kill autovacuum or wait LRQ).
-By careful, if between 1 and (3,4) started LRQ or autovacuum, in this case (3,4) will block all queries on this table. 
+**By careful**, if between 1 and (3,4) started LRQ or autovacuum, in this case (3,4) will block all queries on this table. 
 If it happens, and (3,4) not quit after < 30s, you should stop (3,4) by cancel query in PostgreSQL, and later execute manually.
   
   
