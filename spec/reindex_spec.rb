@@ -9,6 +9,10 @@ describe PgReindex do
     @pgre.filter_relations(name).first
   end  
 
+  def drop_swap_for_reindex
+    @pgre.exec("drop FUNCTION swap_for_pkey(text, text, text)") rescue nil
+  end
+
   it "get_raw_relations" do
     res = @pgre.get_raw_relations
     v = []
@@ -86,6 +90,13 @@ describe PgReindex do
   it "index def" do
     r = row('a_b_c')
     @pgre.index_def(r['index_oid']).should == "CREATE UNIQUE INDEX a_b_c ON tests USING btree (a, b, c) WHERE ((a > 0) AND (b < 0))"
+  end
+
+  it "check swap for pkey" do
+    drop_swap_for_reindex
+    @pgre.check_swap_for_pkey.should == false
+    @pgre.install_swap_for_pkey
+    @pgre.check_swap_for_pkey.should == true
   end
   
   it "rebuilds index" do

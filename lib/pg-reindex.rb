@@ -82,7 +82,7 @@ class PgReindex
       WHERE   nspname = 'public' and proname = 'swap_for_pkey'
     SQL
     
-    res.values.size == 1
+    res.count == 1
   end
   
   def swap_for_pkey_sql
