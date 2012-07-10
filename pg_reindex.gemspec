@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{pg_reindex}
-  s.version = "0.1.3"
+  s.version = "0.1.4"
 
   s.authors = ["Makarchev Konstantin"]
  
