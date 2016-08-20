@@ -82,7 +82,7 @@ describe PgReindex do
   end
   
   it "index_sql with save name" do
-    @pgre.stub!(:index_def).and_return("CREATE INDEX locked_by ON delayed_jobs USING btree (locked_by)")
+    @pgre.should_receive(:index_def).and_return("CREATE INDEX locked_by ON delayed_jobs USING btree (locked_by)")
     sql = @pgre.index_sql(0, "locked_by", "locked_by_2")
     sql.should == "CREATE INDEX CONCURRENTLY locked_by_2 ON delayed_jobs USING btree (locked_by)"
   end
