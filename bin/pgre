@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 
+require 'erb'
 require 'rubygems'
 require 'thor'
 require 'yaml'
