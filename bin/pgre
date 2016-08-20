@@ -97,6 +97,7 @@ private
       file = ENV['PGRE_CFG'] || `pwd`.to_s.chop + "/config/database.yml"
       if File.exists?(file)
         YAML.load_file(file)
+        YAML.load(ERB.new(File.read(file).result)
       else
         say "Specify path to database.yml with env PGRE_CFG, like: PGRE_CFG=/../../database.yml pgre ...", :red
         exit 1
