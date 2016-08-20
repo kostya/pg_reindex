@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
-require 'erb'
 require 'rubygems'
+require 'erb'
 require 'thor'
 require 'yaml'
 require File.dirname(__FILE__) + '/../lib/pg-reindex'
